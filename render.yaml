@@ -13,7 +13,9 @@ services:
         value: admin
       - key: ADMIN_PASSWORD
         generateValue: true
-      - key: OPENAI_API_KEY
+      - key: OPENROUTER_API_KEY
         sync: false
+      - key: OPENROUTER_MODEL
+        value: anthropic/claude-3.5-sonnet
       - key: DATABASE_URL
         value: sqlite:///./data/app.db

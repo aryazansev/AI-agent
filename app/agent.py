@@ -9,9 +9,9 @@ class PersonalizationAgent:
     """AI-агент для персонализации коммуникаций"""
     
     def __init__(self):
-        self.api_key = os.getenv("OPENAI_API_KEY", "")
-        self.model = os.getenv("OPENAI_MODEL", "gpt-4")
-        self.api_base = os.getenv("OPENAI_API_BASE", "https://api.openai.com/v1")
+        self.api_key = os.getenv("OPENROUTER_API_KEY", "")
+        self.model = os.getenv("OPENROUTER_MODEL", "anthropic/claude-3.5-sonnet")
+        self.api_base = os.getenv("OPENROUTER_API_BASE", "https://openrouter.ai/api/v1")
         self.temperature = float(os.getenv("AGENT_TEMPERATURE", "0.7"))
     
     def get_prompt_template(self, name: str) -> str:
@@ -137,15 +137,17 @@ Email: до 150 слов. Push: до 80 символов."""
         return result.get("growth_opportunities", [])
     
     def _call_llm(self, prompt: str, system_message: str = "Ты — AI-агент") -> Dict:
-        """Вызвать LLM API"""
+        """Вызвать OpenRouter API"""
         if not self.api_key:
-            print("[WARNING] OpenAI API key not set, using mock response")
+            print("[WARNING] OpenRouter API key not set, using mock response")
             return self._mock_response(prompt)
         
         try:
             headers = {
                 "Authorization": f"Bearer {self.api_key}",
-                "Content-Type": "application/json"
+                "Content-Type": "application/json",
+                "HTTP-Referer": "https://github.com/aryazansev/AI-agent",
+                "X-Title": "AI Agent Personalization"
             }
             
             payload = {
