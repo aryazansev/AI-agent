@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Agent - Пользователи</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #f5f7fa;
+        }
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: 250px;
+            height: 100vh;
+            background: #2c3e50;
+            padding: 20px 0;
+        }
+        .logo {
+            color: white;
+            padding: 0 20px 20px;
+            font-size: 20px;
+            font-weight: bold;
+            border-bottom: 1px solid #34495e;
+        }
+        .nav {
+            list-style: none;
+            padding: 20px 0;
+        }
+        .nav li {
+            padding: 0;
+        }
+        .nav a {
+            display: block;
+            padding: 15px 20px;
+            color: #bdc3c7;
+            text-decoration: none;
+            transition: all 0.3s;
+        }
+        .nav a:hover, .nav a.active {
+            background: #34495e;
+            color: white;
+        }
+        .main-content {
+            margin-left: 250px;
+            padding: 30px;
+        }
+        .header {
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .header h1 {
+            color: #2c3e50;
+            font-size: 28px;
+        }
+        .search-box {
+            padding: 10px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 6px;
+            width: 300px;
+            font-size: 14px;
+        }
+        .content-card {
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            text-align: left;
+            padding: 15px 12px;
+            border-bottom: 1px solid #ecf0f1;
+        }
+        th {
+            color: #7f8c8d;
+            font-weight: 600;
+            font-size: 12px;
+            text-transform: uppercase;
+        }
+        .segment-badge {
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        .segment-new { background: #3498db; color: white; }
+        .segment-regular { background: #27ae60; color: white; }
+        .segment-vip { background: #f39c12; color: white; }
+        .segment-dormant { background: #95a5a6; color: white; }
+        .logout {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            right: 20px;
+        }
+        .logout button {
+            width: 100%;
+            padding: 12px;
+            background: #e74c3c;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <aside class="sidebar">
+        <div class="logo">AI Agent</div>
+        <ul class="nav">
+            <li><a href="/dashboard">Дашборд</a></li>
+            <li><a href="/users" class="active">Пользователи</a></li>
+            <li><a href="/events">События</a></li>
+            <li><a href="/messages">Сообщения</a></li>
+            <li><a href="/prompts">Промпты</a></li>
+        </ul>
+        <div class="logout">
+            <button onclick="logout()">Выйти</button>
+        </div>
+    </aside>
+
+    <main class="main-content">
+        <div class="header">
+            <h1>Пользователи</h1>
+            <input type="text" class="search-box" placeholder="Поиск пользователей..." id="searchInput">
+        </div>
+
+        <div class="content-card">
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Имя</th>
+                        <th>Email</th>
+                        <th>Сегмент</th>
+                        <th>Потрачено</th>
+                        <th>Действия</th>
+                    </tr>
+                </thead>
+                <tbody id="usersTable">
+                    <tr><td colspan="6">Загрузка...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </main>
+
+    <script>
+        const token = localStorage.getItem('token');
+        if (!token) {
+            window.location.href = '/';
+        }
+
+        async function loadUsers() {
+            try {
+                // Здесь нужно добавить endpoint для получения списка пользователей
+                document.getElementById('usersTable').innerHTML = '<tr><td colspan="6">Функция в разработке</td></tr>';
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem('token');
+            window.location.href = '/';
+        }
+
+        loadUsers();
+    </script>
+</body>
+</html>

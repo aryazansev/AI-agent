@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Agent - События</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #f5f7fa;
+        }
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: 250px;
+            height: 100vh;
+            background: #2c3e50;
+            padding: 20px 0;
+        }
+        .logo {
+            color: white;
+            padding: 0 20px 20px;
+            font-size: 20px;
+            font-weight: bold;
+            border-bottom: 1px solid #34495e;
+        }
+        .nav {
+            list-style: none;
+            padding: 20px 0;
+        }
+        .nav li {
+            padding: 0;
+        }
+        .nav a {
+            display: block;
+            padding: 15px 20px;
+            color: #bdc3c7;
+            text-decoration: none;
+            transition: all 0.3s;
+        }
+        .nav a:hover, .nav a.active {
+            background: #34495e;
+            color: white;
+        }
+        .main-content {
+            margin-left: 250px;
+            padding: 30px;
+        }
+        .header {
+            margin-bottom: 30px;
+        }
+        .header h1 {
+            color: #2c3e50;
+            font-size: 28px;
+        }
+        .content-card {
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            text-align: left;
+            padding: 15px 12px;
+            border-bottom: 1px solid #ecf0f1;
+        }
+        th {
+            color: #7f8c8d;
+            font-weight: 600;
+            font-size: 12px;
+            text-transform: uppercase;
+        }
+        .badge {
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        .badge-cart { background: #e74c3c; color: white; }
+        .badge-view { background: #3498db; color: white; }
+        .badge-purchase { background: #27ae60; color: white; }
+        .badge-other { background: #95a5a6; color: white; }
+        .logout {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            right: 20px;
+        }
+        .logout button {
+            width: 100%;
+            padding: 12px;
+            background: #e74c3c;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <aside class="sidebar">
+        <div class="logo">AI Agent</div>
+        <ul class="nav">
+            <li><a href="/dashboard">Дашборд</a></li>
+            <li><a href="/users">Пользователи</a></li>
+            <li><a href="/events" class="active">События</a></li>
+            <li><a href="/messages">Сообщения</a></li>
+            <li><a href="/prompts">Промпты</a></li>
+        </ul>
+        <div class="logout">
+            <button onclick="logout()">Выйти</button>
+        </div>
+    </aside>
+
+    <main class="main-content">
+        <div class="header">
+            <h1>События</h1>
+        </div>
+
+        <div class="content-card">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Время</th>
+                        <th>Пользователь</th>
+                        <th>Событие</th>
+                        <th>Товар</th>
+                        <th>Доп. данные</th>
+                    </tr>
+                </thead>
+                <tbody id="eventsTable">
+                    <tr><td colspan="5">Загрузка...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </main>
+
+    <script>
+        const token = localStorage.getItem('token');
+        if (!token) {
+            window.location.href = '/';
+        }
+
+        async function loadEvents() {
+            try {
+                const response = await fetch('/api/admin/dashboard', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    const tbody = document.getElementById('eventsTable');
+                    tbody.innerHTML = '';
+                    
+                    if (data.recent_events.length === 0) {
+                        tbody.innerHTML = '<tr><td colspan="5">Нет событий</td></tr>';
+                    } else {
+                        data.recent_events.forEach(event => {
+                            let badgeClass = 'badge-other';
+                            if (event.event_type.includes('cart')) badgeClass = 'badge-cart';
+                            else if (event.event_type.includes('purchase')) badgeClass = 'badge-purchase';
+                            else if (event.event_type.includes('view')) badgeClass = 'badge-view';
+                            
+                            let properties = '{}';
+                            try {
+                                properties = JSON.stringify(JSON.parse(event.properties || '{}'), null, 2);
+                            } catch(e) {}
+                            
+                            tbody.innerHTML += `
+                                <tr>
+                                    <td>${new Date(event.timestamp).toLocaleString()}</td>
+                                    <td>${event.user_id}</td>
+                                    <td><span class="badge ${badgeClass}">${event.event_type}</span></td>
+                                    <td>${event.product_id || '-'}</td>
+                                    <td><pre style="font-size: 11px; background: #f8f9fa; padding: 5px; border-radius: 4px;">${properties}</pre></td>
+                                </tr>
+                            `;
+                        });
+                    }
+                }
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem('token');
+            window.location.href = '/';
+        }
+
+        loadEvents();
+    </script>
+</body>
+</html>

@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Agent - Сообщения</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #f5f7fa;
+        }
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: 250px;
+            height: 100vh;
+            background: #2c3e50;
+            padding: 20px 0;
+        }
+        .logo {
+            color: white;
+            padding: 0 20px 20px;
+            font-size: 20px;
+            font-weight: bold;
+            border-bottom: 1px solid #34495e;
+        }
+        .nav {
+            list-style: none;
+            padding: 20px 0;
+        }
+        .nav li {
+            padding: 0;
+        }
+        .nav a {
+            display: block;
+            padding: 15px 20px;
+            color: #bdc3c7;
+            text-decoration: none;
+            transition: all 0.3s;
+        }
+        .nav a:hover, .nav a.active {
+            background: #34495e;
+            color: white;
+        }
+        .main-content {
+            margin-left: 250px;
+            padding: 30px;
+        }
+        .header {
+            margin-bottom: 30px;
+        }
+        .header h1 {
+            color: #2c3e50;
+            font-size: 28px;
+        }
+        .content-card {
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            text-align: left;
+            padding: 15px 12px;
+            border-bottom: 1px solid #ecf0f1;
+        }
+        th {
+            color: #7f8c8d;
+            font-weight: 600;
+            font-size: 12px;
+            text-transform: uppercase;
+        }
+        .status-badge {
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        .status-pending { background: #f39c12; color: white; }
+        .status-sent { background: #3498db; color: white; }
+        .status-delivered { background: #27ae60; color: white; }
+        .status-failed { background: #e74c3c; color: white; }
+        .message-preview {
+            max-width: 300px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .logout {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            right: 20px;
+        }
+        .logout button {
+            width: 100%;
+            padding: 12px;
+            background: #e74c3c;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <aside class="sidebar">
+        <div class="logo">AI Agent</div>
+        <ul class="nav">
+            <li><a href="/dashboard">Дашборд</a></li>
+            <li><a href="/users">Пользователи</a></li>
+            <li><a href="/events">События</a></li>
+            <li><a href="/messages" class="active">Сообщения</a></li>
+            <li><a href="/prompts">Промпты</a></li>
+        </ul>
+        <div class="logout">
+            <button onclick="logout()">Выйти</button>
+        </div>
+    </aside>
+
+    <main class="main-content">
+        <div class="header">
+            <h1>Сообщения</h1>
+        </div>
+
+        <div class="content-card">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Создано</th>
+                        <th>Пользователь</th>
+                        <th>Тип</th>
+                        <th>Тема</th>
+                        <th>Сообщение</th>
+                        <th>Статус</th>
+                    </tr>
+                </thead>
+                <tbody id="messagesTable">
+                    <tr><td colspan="6">Загрузка...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </main>
+
+    <script>
+        const token = localStorage.getItem('token');
+        if (!token) {
+            window.location.href = '/';
+        }
+
+        async function loadMessages() {
+            try {
+                const response = await fetch('/api/admin/messages', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    const tbody = document.getElementById('messagesTable');
+                    tbody.innerHTML = '';
+                    
+                    if (data.length === 0) {
+                        tbody.innerHTML = '<tr><td colspan="6">Нет сообщений</td></tr>';
+                    } else {
+                        data.forEach(msg => {
+                            const statusClass = `status-${msg.status}`;
+                            tbody.innerHTML += `
+                                <tr>
+                                    <td>${new Date(msg.created_at).toLocaleString()}</td>
+                                    <td>${msg.user_id}</td>
+                                    <td>${msg.message_type}</td>
+                                    <td>${msg.subject || '-'}</td>
+                                    <td class="message-preview" title="${msg.content}">${msg.content}</td>
+                                    <td><span class="status-badge ${statusClass}">${msg.status}</span></td>
+                                </tr>
+                            `;
+                        });
+                    }
+                }
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem('token');
+            window.location.href = '/';
+        }
+
+        loadMessages();
+    </script>
+</body>
+</html>
